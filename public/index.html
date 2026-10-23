@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Astra AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090d1c;color:#fff;font-family:Arial,sans-serif}
+header{padding:20px;background:#111831;border-bottom:1px solid #293451;display:flex;align-items:center;gap:12px}
+.logo{background:linear-gradient(135deg,#7c3aed,#06b6d4);padding:12px;border-radius:15px;font-size:23px}
+h1{font-size:22px;margin:0}
+header p{margin:5px 0 0;color:#9caaca;font-size:12px}
+main{max-width:750px;margin:auto;padding:18px}
+.welcome{padding:22px 5px}
+.welcome h2{font-size:28px;margin-bottom:8px}
+.welcome p{color:#aab5d0;line-height:1.6}
+#chat{display:flex;flex-direction:column;gap:14px;padding-bottom:20px}
+.msg{padding:14px 16px;border-radius:16px;max-width:90%;white-space:pre-wrap;line-height:1.5}
+.bot{background:#171f38;border:1px solid #293451;align-self:flex-start}
+.user{background:#5b42d6;align-self:flex-end}
+form{position:sticky;bottom:0;background:#090d1c;padding:12px 0 18px;display:flex;gap:8px}
+input{min-width:0;flex:1;background:#151c31;border:1px solid #34405d;border-radius:15px;padding:15px;color:white;font-size:16px;outline:none}
+button{background:#7654ed;color:white;border:0;border-radius:14px;padding:0 19px;font-size:16px;cursor:pointer}
+button:active{transform:scale(.97)}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.quick button{padding:10px 12px;background:#171f38;border:1px solid #303b58;font-size:13px}
+.note{font-size:12px;color:#8290b1;text-align:center;padding-bottom:10px}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">✦</div>
+<div><h1>Astra AI</h1><p>आपका स्मार्ट AI सहायक</p></div>
+</header>
+<main>
+<section class="welcome">
+<h2>नमस्ते! 👋</h2>
+<p>मैं Astra AI हूँ। पढ़ाई, कोडिंग, लिखने और नए विचारों में आपकी मदद के लिए तैयार हूँ।</p>
+</section>
+<div class="quick">
+<button type="button" onclick="suggest('मुझे पढ़ाई में मदद करो')">📚 पढ़ाई</button>
+<button type="button" onclick="suggest('मुझे कोडिंग सिखाओ')">💻 कोडिंग</button>
+<button type="button" onclick="suggest('एक कहानी लिखो')">✍️ लिखना</button>
+</div>
+<div id="chat">
+<div class="msg bot">नमस्ते! 😊 अपना सवाल नीचे लिखिए।</div>
+</div>
+<form id="form">
+<input id="prompt" placeholder="Astra AI से कुछ पूछें..." autocomplete="off" required>
+<button type="submit">भेजें ➤</button>
+</form>
+<div class="note">Astra AI · आपका AI साथी</div>
+</main>
+<script>
+const chat=document.getElementById("chat");
+const input=document.getElementById("prompt");
+function addMessage(text,who){
+const el=document.createElement("div");
+el.className="msg "+who;
+el.textContent=text;
+chat.appendChild(el);
+el.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function suggest(text){input.value=text;input.focus()}
+document.getElementById("form").addEventListener("submit",async function(e){
+e.preventDefault();
+const message=input.value.trim();
+if(!message)return;
+addMessage(message,"user");
+input.value="";
+const loading=document.createElement("div");
+loading.className="msg bot";
+loading.textContent="सोच रहा हूँ...";
+chat.appendChild(loading);
+try{
+const response=await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message})
+});
+const data=await response.json();
+loading.textContent=data.reply||data.error||"अभी जवाब नहीं मिला।";
+}catch(error){
+loading.textContent="अभी AI सर्वर से जवाब नहीं मिल रहा। AI API जोड़ने के बाद मैं आपके सवालों के जवाब दे सकूँगा।";
+}
+});
+</script>
+</body>
+  </html>
+  
