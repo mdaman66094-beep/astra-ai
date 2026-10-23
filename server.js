@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -10,10 +9,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 app.get("/api/health", (req, res) => {
-  res.json({
-    status: "online",
-    name: "Astra AI"
-  });
+  res.json({ status: "online", name: "Astra AI" });
 });
 
 app.post("/api/chat", async (req, res) => {
@@ -21,16 +17,15 @@ app.post("/api/chat", async (req, res) => {
     const message = req.body?.message;
 
     if (!message || typeof message !== "string") {
-      return res.status(400).json({
-        error: "Apna sawal likhiye."
-      });
+      return res.status(400).json({ error: "Apna sawal likhiye." });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
+      console.error("GEMINI_API_KEY environment variable missing");
       return res.status(500).json({
-        error: "Gemini API key server par set nahi hai."
+        error: "Server par API key nahi mili. Render Environment check karein."
       });
     }
 
@@ -43,14 +38,11 @@ app.post("/api/chat", async (req, res) => {
           "x-goog-api-key": apiKey
         },
         body: JSON.stringify({
-          system_instruction: {
-            parts: [{
-              text: "You are Astra AI, a helpful AI assistant for India. Reply clearly and helpfully. Use Hindi when the user writes in Hindi."
-            }]
-          },
           contents: [{
             role: "user",
-            parts: [{ text: message }]
+            parts: [{
+              text: "You are Astra AI, a helpful assistant. Reply in Hindi when the user writes in Hindi.\n\nUser: " + message
+            }]
           }]
         })
       }
@@ -59,24 +51,19 @@ app.post("/api/chat", async (req, res) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Gemini API error:", response.status, data);
+      console.error("Gemini API returned HTTP", response.status);
       return res.status(502).json({
-        error: "AI se jawab nahi mila. API key, quota aur model access check karein."
+        error: "Gemini API se jawab nahi mila. API key, model access aur quota check karein."
       });
     }
 
-    const reply =
-      data.candidates?.[0]?.content?.parts
-        ?.map(part => part.text || "")
-        .join("") || "Abhi jawab nahi mila.";
+    const reply = data.candidates?.[0]?.content?.parts
+      ?.map(part => part.text || "").join("");
 
-    res.json({ reply });
-
+    res.json({ reply: reply || "Abhi jawab nahi mila." });
   } catch (error) {
-    console.error("Chat error:", error.message);
-    res.status(500).json({
-      error: "Server mein dikkat hai. Kripya dobara koshish karein."
-    });
+    console.error("Chat request failed:", error.message);
+    res.status(500).json({ error: "Server mein dikkat hai. Dobara koshish karein." });
   }
 });
 
@@ -85,4 +72,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Astra AI running on port ${PORT}`);
 });
-        
